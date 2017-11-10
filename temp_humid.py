@@ -28,6 +28,8 @@ import socket
 
 import serial
 
+SERIAL_PORT_BIT_RATE = 9600  # Unit is 1 bit per second.
+
 graphqueue = None
 ftpqueue = None
 
@@ -105,7 +107,7 @@ def record_cycle(portname, outfile, graphqueue):
     """
     start_hour = time.localtime().tm_hour
     try:
-        sport = serial.Serial(portname, baudrate=9600)
+        sport = serial.Serial(portname, baudrate=SERIAL_PORT_BIT_RATE)
         for measurement in recorder(sport):
             print(' '.join(measurement[1:]), file=outfile)
             outfile.flush()
