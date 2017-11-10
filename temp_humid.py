@@ -22,10 +22,11 @@ import matplotlib.animation as animation
 import matplotlib.dates as mdates
 import re
 import ftplib
-import serial
 import threading
 import queue
 import socket
+
+import serial
 
 graphqueue = None
 ftpqueue = None
