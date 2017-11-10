@@ -131,12 +131,12 @@ def record_thread(recordqueue, graphqueue, datadir, portname, portretry):
         Manage report files and notification to the main thread for
         triggering FTP transfers.
     """
-    logging.info("record_thread start dir=%s, port=%s" % (datadir, portname))
+    logging.info("record_thread start dir=%s, port=%s", datadir, portname)
     while True:
         # Start recording
         outfilename = time.strftime('temp_monitor_%Y-%m-%d_%H.txt')
         outfilepath = os.path.join(datadir, outfilename)
-        logging.info('outfile ' + outfilepath)
+        logging.info('outfile %s', outfilepath)
         outfile = open(outfilepath, 'a')
         try:
             recordqueue.put( (outfilepath, outfilename, "start") )
@@ -144,7 +144,7 @@ def record_thread(recordqueue, graphqueue, datadir, portname, portretry):
             recordqueue.put( (outfilepath, outfilename, "end") )
         except serial.serialutil.SerialException:
             recordqueue.put( (outfilepath, outfilename, "error") )
-            logging.critical("Warning: Serial port %s unavailable" % portname)
+            logging.critical("Warning: Serial port %s unavailable", portname)
             time.sleep(int(portretry))
         outfile.close()
 
@@ -154,7 +154,7 @@ def generator():
         try:
             measurements.append(graphqueue.get(block=False, timeout=None))
         except queue.Empty:
-            logging.debug("generator: " + str(measurements))
+            logging.debug("generator: %s", measurements)
             yield measurements
             measurements = []
 
@@ -186,7 +186,7 @@ def animate(measurements):
     global date_format
 
     for meas in measurements:
-        logging.debug("animate: " + str(meas))
+        logging.debug("animate: %s", meas)
         if meas != None and len(meas) == 9:
             x.append(datetime.strptime(meas[1], '%Y-%m-%d %H:%M:%S'))
             if temp_units == 'F':
@@ -225,7 +225,7 @@ def animate(measurements):
         plt.suptitle("")
 
     now = x[-1]
-    #logging.debug("animate now: " + str(now))
+    #logging.debug("animate now: %s", now)
     temp_ax.set_xlim(now - timedelta(0,chart_interval), now)
     temp_ax2.set_xlim(now - timedelta(0,chart_interval2), now)
 
@@ -240,7 +240,7 @@ def animate(measurements):
     humid_line2.set_data(x, humid_y)  # update the data
     thresh_line2.set_data(x, thresh_y)
 
-    logging.debug(str(len(x)) + "/" + str(len(temp_y)) + "/" + str(len(humid_y)))
+    logging.debug('%s/%s/%s', len(x), len(temp_y), len(humid_y))
     return temp_line, humid_line, thresh_line
 
 chart_height = None
@@ -251,7 +251,7 @@ def init_charting():
     global humidity_threshold, temp_color, humid_color, temp_units
     #fig = plt.figure(1)
     now = time.time()
-    #logging.debug("now = " + str(now))
+    #logging.debug("now = %s", now)
     fig, axes = plt.subplots(2, 1, False, False)
     fig.set_size_inches(chart_width,chart_height)
     temp_ax = axes[0]
@@ -387,15 +387,15 @@ def main():
     chart_height = int(args.chart_height)
     temp_units = args.temp_units
     display_interval = int(args.display_interval)
-    logging.info("humidity_threshold = " + str(humidity_threshold))
-    logging.info("chart_interval = " + str(chart_interval))
-    logging.info("chart_interval2 = " + str(chart_interval2))
-    logging.info("temp_color = " + temp_color)
-    logging.info("humid_color = " + humid_color)
-    logging.info("chart_width = " + str(chart_width))
-    logging.info("chart_height = " + str(chart_height))
-    logging.info("temp_units = " + temp_units)
-    logging.info("display_interval = " + str(display_interval))
+    logging.info("humidity_threshold = %s", humidity_threshold)
+    logging.info("chart_interval = %s", chart_interval)
+    logging.info("chart_interval2 = %s", chart_interval2)
+    logging.info("temp_color = %s", temp_color)
+    logging.info("humid_color = %s", humid_color)
+    logging.info("chart_width = %s", chart_width)
+    logging.info("chart_height = %s", chart_height)
+    logging.info("temp_units = %s", temp_units)
+    logging.info("display_interval = %s", display_interval)
 
 
     if chart_interval2 > chart_interval:
