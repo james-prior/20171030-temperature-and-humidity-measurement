@@ -223,7 +223,7 @@ def animate(measurements):
             humid_y.append(rel_humidity)
             thresh_y.append(humidity_threshold)
 
-    if len(measurements) == 0:
+    if not measurements:
         if len(x) == 0:
             return(temp_line, humid_line, thresh_line)
         else:
@@ -240,7 +240,7 @@ def animate(measurements):
         humid_y = humid_y[prune_count :  ]
         thresh_y = thresh_y[prune_count :  ]
 
-    if len(humid_y) > 0 and int(humid_y[-1]) > humidity_threshold:
+    if humid_y and int(humid_y[-1]) > humidity_threshold:
         plt.suptitle("HUMIDITY ALERT", fontsize=40, color="red")
     else:
         plt.suptitle("")
