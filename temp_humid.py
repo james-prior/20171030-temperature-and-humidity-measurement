@@ -48,9 +48,12 @@ def recorder(serport):
         ident  -- iButton (oneWire) identification, 16 hex digits
         type   -- LinkTH iButton "type" string
         vvvvvvvvv Device-dependent variable fields
-        tempC  -- Temperature Celsius if device is a temp/humidity sensor (type=19)
-        tempF  -- Temperature Fahrenheit if device is a temp/humidity sensor (type=19)
-        humid  -- Percent humidity if device is a temp/humidity sensor (type=19)
+        tempC  -- Temperature Celsius if device is a temp/humidity sensor
+                  (type=19)
+        tempF  -- Temperature Fahrenheit if device is a temp/humidity sensor
+                  (type=19)
+        humid  -- Percent humidity if device is a temp/humidity sensor
+                  (type=19)
         ^^^^^^^^^
         dtime  -- device reported time
         seconds -- Data collection host time in seconds since 1/1/1970 UTC
@@ -80,7 +83,8 @@ def recorder(serport):
                 dl = dl.strip(b'\r').strip(b'?')
                 matcher = datafmt.match(dl)
                 if matcher:
-                    ident = matcher.group(1).strip().decode(encoding="ascii", errors="none")
+                    ident = matcher.group(1).strip().decode(
+                        encoding="ascii", errors="none")
                     if len(ident) < 16:
                         ident = None
                 else:
@@ -91,7 +95,9 @@ def recorder(serport):
                     nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
                     timesecs = str(int(now))
                     measurements = [timeobj.tm_hour, nowstr, ident]
-                    measurements.extend( [x.strip().decode(encoding="ascii", errors="none") for x in matcher.group(2).split(b',')] )
+                    measurements.extend([
+                        x.strip().decode(encoding="ascii", errors="none")
+                        for x in matcher.group(2).split(b',')] )
                     measurements.append(timesecs)
                     start_time = now
                     yield measurements
@@ -180,9 +186,11 @@ humidity_threshold = None
 date_format = mdates.DateFormatter('%Y-%m-%d\n%H:%M:%S')
 temp_units = None
 def animate(measurements):
-    global temp_line, humid_line, x, temp_y, humid_y, humid_ax, temp_ax, thresh_line, thresh_y
+    global temp_line, humid_line, x, temp_y, humid_y, humid_ax, temp_ax
+    global thresh_line, thresh_y
     global temp_line2, humid_line2, humid_ax2, temp_ax2, thresh_line2
-    global humidity_threshold, chart_interval, chart_interval2, temp_color, humid_color, temp_units
+    global humidity_threshold, chart_interval, chart_interval2, temp_color
+    global humid_color, temp_units
     global date_format
 
     for meas in measurements:
@@ -259,8 +267,16 @@ def init_charting():
     #temp_ax = fig.gca()
     humid_ax = temp_ax.twinx()
     temp_ax.set_xlabel('Time')
-    temp_ax.set_ylabel("Temperature (" + temp_units + ")", color=temp_color, fontsize=16)
-    humid_ax.set_ylabel("Relative Humidity (%)", color=humid_color, fontsize=16)
+    temp_ax.set_ylabel(
+        "Temperature (" + temp_units + ")",
+        color=temp_color,
+        fontsize=16,
+    )
+    humid_ax.set_ylabel(
+        "Relative Humidity (%)",
+        color=humid_color,
+        fontsize=16,
+    )
     if temp_units == 'F':
         temp_ax.set_ylim(bottom=50, top=185)
     elif temp_units == 'C':
@@ -279,8 +295,16 @@ def init_charting():
     temp_ax2 = axes[1]
     humid_ax2 = temp_ax2.twinx()
     temp_ax2.set_xlabel('Time')
-    temp_ax2.set_ylabel("Temperature (" + temp_units + ")", color=temp_color, fontsize=16)
-    humid_ax2.set_ylabel("Relative Humidity (%)", color=humid_color, fontsize=16)
+    temp_ax2.set_ylabel(
+        "Temperature (" + temp_units + ")",
+        color=temp_color,
+        fontsize=16,
+    )
+    humid_ax2.set_ylabel(
+        "Relative Humidity (%)",
+        color=humid_color,
+        fontsize=16,
+    )
     if temp_units == 'F':
         temp_ax2.set_ylim(bottom=50, top=185)
     elif temp_units == 'C':
@@ -307,11 +331,22 @@ def ani_init():
     temp_line2.set_data([],[])
     humid_line2.set_data([],[])
     thresh_line2.set_data([],[])
-    return temp_line, humid_line, thresh_line, temp_line2, humid_line2, thresh_line2
+    return (
+        temp_line,
+        humid_line,
+        thresh_line,
+        temp_line2,
+        humid_line2,
+        thresh_line2,
+    )
 
 def ftpsend(filepath, filename):
     try:
-        with ftplib.FTP(host="www.salientsystems.com", user="salient", passwd="space") as ftp:
+        with ftplib.FTP(
+                host="www.salientsystems.com",
+                user="salient",
+                passwd="space",
+        ) as ftp:
             logging.info("ftp start")
             with open(filepath, 'rb') as ftpfile:
                 ftp.cwd("test_temperature")
@@ -348,34 +383,111 @@ def ftp_thread():
 
 def main():
     global graphqueue, recordqueue, ftpperiod
-    global humidity_threshold, chart_interval, chart_interval2, temp_color, humid_color, chart_width, chart_height, temp_units
+    global humidity_threshold, chart_interval, chart_interval2, temp_color
+    global humid_color, chart_width, chart_height, temp_units
 
-    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(asctime)s %(message)s', 
-	handlers=[logging.handlers.RotatingFileHandler("/tmp/temp_humid.log", 'a', maxBytes=50000, backupCount=4)])
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(levelname)s: %(asctime)s %(message)s', 
+	handlers=[
+            logging.handlers.RotatingFileHandler(
+                "/tmp/temp_humid.log",
+                'a',
+                maxBytes=50000,
+                backupCount=4)])
 
     # check usage
-    parser = argparse.ArgumentParser(prog=sys.argv[0],
-                 description="Collect temp and humidity data from a one-wire temp and humidity sensor, produce a live" +
-                                         " graph of it, and archive the data using FTP.")
-    charting_group = parser.add_argument_group('Charting parameters', "Parameters to control charting behavior.")
-    charting_group.add_argument("-cw", "--chartwidth", dest='chart_width', default="16", metavar="<chart width>",
-                                help="Chart width in inches.")
-    charting_group.add_argument("-ch", "--chartheight", dest='chart_height', default="8", metavar="<chart height>",
-                                help="Chart height in inches.")
-    charting_group.add_argument("-di", "--displayinterval", dest='display_interval', default="10000", metavar="<display interval>",
-                                help="Interval at which the display updates in ms.")
-    charting_group.add_argument("-hc", "--humiditycolor", dest='humid_color', default="green", metavar="<humidity color>",
-                                help="Color of the humidity line on the chart.")
-    charting_group.add_argument("-i", "--interval", dest='chart_interval', default='43200', metavar="<chart interval>",
-                                help="Time period (in seconds) on the x-axis of the chart.")
-    charting_group.add_argument("-i2", "--interval_2", dest='chart_interval2', default='600', metavar="<secondary chart interval>",
-                                help="Time period (in seconds) on the x-axis of the secondary chart. Must be <= the primary chart interval")
-    charting_group.add_argument("-th", "--thresh", dest='humidity_threshold', metavar="<humidity threshold>, ", default='10',
-        help="Percent relative humidity at which a threshold line is drawn on chart.  A warning message is displayed when the humidity crosses this threshold")
-    charting_group.add_argument("-tc", "--tempcolor", dest='temp_color', default="blue", metavar="<temp color>",
-                                                    help="Color of the temperature line on the chart.")
-    charting_group.add_argument("-tu", "--tempunits", dest='temp_units', default="F", metavar="<temp units>", choices=['C', 'F'],
-                                help="Temperature units.  ")
+    parser = argparse.ArgumentParser(
+        prog=sys.argv[0],
+        description=(
+            "Collect temp and humidity data from a "
+            "one-wire temp and humidity sensor, produce a live graph of it, "
+            "and archive the data using FTP."
+        ),
+    )
+    charting_group = parser.add_argument_group(
+        'Charting parameters',
+        "Parameters to control charting behavior.")
+    charting_group.add_argument(
+        "-cw",
+        "--chartwidth",
+        dest='chart_width',
+        default="16",
+        metavar="<chart width>",
+        help="Chart width in inches.",
+    )
+    charting_group.add_argument(
+        "-ch",
+        "--chartheight",
+        dest='chart_height',
+        default="8",
+        metavar="<chart height>",
+        help="Chart height in inches.",
+    )
+    charting_group.add_argument(
+        "-di",
+        "--displayinterval",
+        dest='display_interval',
+        default="10000",
+        metavar="<display interval>",
+        help="Interval at which the display updates in ms.",
+    )
+    charting_group.add_argument(
+        "-hc",
+        "--humiditycolor",
+        dest='humid_color',
+        default="green",
+        metavar="<humidity color>",
+        help="Color of the humidity line on the chart.",
+    )
+    charting_group.add_argument(
+        "-i",
+        "--interval",
+        dest='chart_interval',
+        default='43200',
+        metavar="<chart interval>",
+        help="Time period (in seconds) on the x-axis of the chart.",
+    )
+    charting_group.add_argument(
+        "-i2",
+        "--interval_2",
+        dest='chart_interval2',
+        default='600',
+        metavar="<secondary chart interval>",
+        help=(
+            "Time period (in seconds) on the x-axis of the secondary chart. "
+            "Must be <= the primary chart interval"
+        ),
+    )
+    charting_group.add_argument(
+        "-th",
+        "--thresh",
+        dest='humidity_threshold',
+        metavar="<humidity threshold>, ",
+        default='10',
+        help=(
+            "Percent relative humidity at which a threshold line is drawn on "
+            "chart.  A warning message is displayed when the humidity crosses "
+            "this threshold"
+        ),
+    )
+    charting_group.add_argument(
+        "-tc",
+        "--tempcolor",
+        dest='temp_color',
+        default="blue",
+        metavar="<temp color>",
+        help="Color of the temperature line on the chart.",
+    )
+    charting_group.add_argument(
+        "-tu",
+        "--tempunits",
+        dest='temp_units',
+        default="F",
+        metavar="<temp units>",
+        choices=['C', 'F'],
+        help="Temperature units.  ",
+    )
     args = parser.parse_args()
 
     humidity_threshold = int(args.humidity_threshold)
@@ -399,10 +511,13 @@ def main():
 
 
     if chart_interval2 > chart_interval:
-        logging.critical("Secondary chart interval must be <= the primary chart interval")
+        logging.critical(
+            "Secondary chart interval must be <= the primary chart interval")
         sys.exit(1)
 
-    portname = '/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0'
+    portname = (
+        '/dev/serial/by-id/'
+        'usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0')
     portretry = 60
     datadir = '/tmp'
     ftpperiod = 600
@@ -412,7 +527,12 @@ def main():
 
     recordqueue = queue.Queue(maxsize=10)
     recordargs = (recordqueue, graphqueue, datadir, portname, portretry)
-    recordthread = threading.Thread(name="recordthread", target=record_thread, args=recordargs, daemon=1)
+    recordthread = threading.Thread(
+        name="recordthread",
+        target=record_thread,
+        args=recordargs,
+        daemon=1,
+    )
     recordthread.start()
 
     ftpThread = threading.Thread(name="ftpthread", target=ftp_thread, daemon=1)
@@ -420,9 +540,16 @@ def main():
 
     # set up and run dynamic charting from the main loop
     fig = init_charting()
-    ani = animation.FuncAnimation(fig, animate, frames=generator, init_func=ani_init, interval=display_interval, blit=False, repeat=False)
+    ani = animation.FuncAnimation(
+        fig,
+        animate,
+        frames=generator,
+        init_func=ani_init,
+        interval=display_interval,
+        blit=False,
+        repeat=False,
+    )
     plt.show()
 
 if __name__ == "__main__":
     main()
-
