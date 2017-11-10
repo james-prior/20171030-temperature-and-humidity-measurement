@@ -225,7 +225,7 @@ def animate(measurements):
 
     if not measurements:
         if len(x) == 0:
-            return(temp_line, humid_line, thresh_line)
+            return temp_line, humid_line, thresh_line
         else:
             x.append(x[-1])
             temp_y.append(temp_y[-1])
