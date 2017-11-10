@@ -1,0 +1,5 @@
+git clone https://github.com/cohpy/20171030-temperature-and-humidity-measurement
+cd 20171030-temperature-and-humidity-measurement/
+python3 -m venv env
+source env/bin/activate
+pip install -r requirements.txt 
