@@ -195,19 +195,32 @@ def animate(measurements):
 
     for meas in measurements:
         logging.debug("animate: %s", meas)
-        if meas != None and len(meas) == 9:
-            x.append(datetime.strptime(meas[1], '%Y-%m-%d %H:%M:%S'))
+        try:
+            (
+                hour,
+                date_time,  #!!! what is this date time of?
+                device_id,
+                device_type,
+                temperature_c,
+                temperature_f,
+                rel_humidity,
+                uptime,
+                host_time,
+            ) = meas
+        except ValueError:
+            if x:
+                x.append(x[-1])
+                temp_y.append(temp_y[-1])
+                humid_y.append(humid_y[-1])
+                thresh_y.append(humidity_threshold)
+        else:
+            x.append(datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S'))
             if temp_units == 'F':
-                temp_y.append(meas[5])
+                temp_y.append(temperature_f)
             else:
-                temp_y.append(meas[4])
+                temp_y.append(temperature_c)
 
-            humid_y.append(meas[6])
-            thresh_y.append(humidity_threshold)
-        elif len(x) > 0:
-            x.append(x[-1])
-            temp_y.append(temp_y[-1])
-            humid_y.append(humid_y[-1])
+            humid_y.append(rel_humidity)
             thresh_y.append(humidity_threshold)
 
     if len(measurements) == 0:
