@@ -33,7 +33,7 @@ SERIAL_PORT_BIT_RATE = 9600  # Unit is 1 bit per second.
 graphqueue = None
 ftpqueue = None
 
-datafmt = re.compile(br'^\s*([0-9a-fA-F]+)\s+(.+)$')
+datafmt = re.compile(br'^\s*(?P<device_id>[0-9a-fA-F]+)\s+(?P<csv_fields>.+)$')
 
 def recorder(serport):
     """ Collect ASCII data from the LinkTH controller, producing measurements
@@ -85,7 +85,8 @@ def recorder(serport):
             matcher = datafmt.match(line)
             if not matcher:
                 continue
-            ident = matcher.group(1).strip().decode(
+            d = matcher.groupdict()
+            ident = d['device_id'].strip().decode(
                 encoding="ascii", errors="none")
             if len(ident) < 16:
                 continue
@@ -97,7 +98,7 @@ def recorder(serport):
             measurements = [timeobj.tm_hour, nowstr, ident]
             measurements.extend([
                 x.strip().decode(encoding="ascii", errors="none")
-                for x in matcher.group(2).split(b',')] )
+                for x in d['csv_fields'].split(b',')] )
             measurements.append(timesecs)
             start_time = now
             yield measurements
