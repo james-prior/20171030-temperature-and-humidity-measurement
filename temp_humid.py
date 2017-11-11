@@ -67,12 +67,11 @@ def recorder(serport):
         the iBuffonLink string of devices is known.
     """
     serport.timeout=1.0
-    newdata = b''
     start_time = time.time()
     now = start_time
     while now - start_time < 30:
         now = time.time()
-        newdata += serport.read(500)
+        newdata = serport.read(500)
         eodpos = newdata.find(b'EOD')
         if eodpos > 0:
             lines = newdata[:eodpos].split(b'\n')
@@ -101,7 +100,6 @@ def recorder(serport):
                     measurements.append(timesecs)
                     start_time = now
                     yield measurements
-        newdata = b''
     logging.info("timeout")
     return b'Timeout'
 
