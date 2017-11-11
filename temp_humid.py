@@ -83,12 +83,11 @@ def recorder(serport):
                 continue
             line = line.strip(b'\r').strip(b'?')
             matcher = datafmt.match(line)
-            if matcher:
-                ident = matcher.group(1).strip().decode(
-                    encoding="ascii", errors="none")
-                if len(ident) < 16:
-                    ident = None
-            else:
+            if not matcher:
+                continue
+            ident = matcher.group(1).strip().decode(
+                encoding="ascii", errors="none")
+            if len(ident) < 16:
                 ident = None
             if ident is not None:
                 now = time.time()
