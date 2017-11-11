@@ -97,9 +97,8 @@ def recorder(serport):
             nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
             timesecs = str(int(now))
             measurements = [timeobj.tm_hour, nowstr, ident]
-            measurements.extend([
-                x.strip()
-                for x in d['csv_fields'].split(',')] )
+            csv_fields = d['csv_fields'].split(',')
+            measurements.extend([x.strip() for x in csv_fields])
             measurements.append(timesecs)
             start_time = now
             yield measurements
