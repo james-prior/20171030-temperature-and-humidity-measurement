@@ -197,8 +197,8 @@ def animate(measurements):
     global humid_color, temp_units
     global date_format
 
-    for meas in measurements:
-        logging.debug("animate: %s", meas)
+    for measurement in measurements:
+        logging.debug("animate: %s", measurement)
         try:
             (
                 hour,
@@ -210,7 +210,7 @@ def animate(measurements):
                 rel_humidity,
                 uptime,
                 host_time,
-            ) = meas
+            ) = measurement
         except ValueError:
             if x:
                 x.append(x[-1])
