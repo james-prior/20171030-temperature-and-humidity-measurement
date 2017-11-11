@@ -85,9 +85,10 @@ def recorder(serport):
             matcher = datafmt.match(line)
             if not matcher:
                 continue
-            d = matcher.groupdict()
-            ident = d['device_id'].strip().decode(
-                encoding="ascii", errors="none")
+            d = {
+                key: value.decode(encoding="ascii", errors="none")
+                for key, value in matcher.groupdict().items()}
+            ident = d['device_id'].strip()
             if len(ident) < 16:
                 continue
 
@@ -97,8 +98,8 @@ def recorder(serport):
             timesecs = str(int(now))
             measurements = [timeobj.tm_hour, nowstr, ident]
             measurements.extend([
-                x.strip().decode(encoding="ascii", errors="none")
-                for x in d['csv_fields'].split(b',')] )
+                x.strip()
+                for x in d['csv_fields'].split(',')] )
             measurements.append(timesecs)
             start_time = now
             yield measurements
