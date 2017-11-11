@@ -73,12 +73,11 @@ def recorder(serport):
         now = time.time()
         newdata = serport.read(500)
         try:
-            before_eod, after_eod = newdata.split(b'EOD', 1)
+            before_eod, _ = newdata.split(b'EOD', 1)
         except ValueError:
             continue
 
         lines = before_eod.split(b'\n')
-        newdata = after_eod
         for dl in lines:
             if len(dl) < 20:
                 continue
