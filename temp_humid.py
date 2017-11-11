@@ -78,11 +78,11 @@ def recorder(serport):
             continue
 
         lines = before_eod.split(b'\n')
-        for dl in lines:
-            if len(dl) < 20:
+        for line in lines:
+            if len(line) < 20:
                 continue
-            dl = dl.strip(b'\r').strip(b'?')
-            matcher = datafmt.match(dl)
+            line = line.strip(b'\r').strip(b'?')
+            matcher = datafmt.match(line)
             if matcher:
                 ident = matcher.group(1).strip().decode(
                     encoding="ascii", errors="none")
