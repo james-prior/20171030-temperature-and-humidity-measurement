@@ -88,7 +88,7 @@ def recorder(serport):
             d = {
                 key: value.decode(encoding="ascii", errors="none")
                 for key, value in matcher.groupdict().items()}
-            ident = d['device_id'].strip()
+            ident = d['device_id']
             if len(ident) < 16:
                 continue
 
