@@ -72,34 +72,37 @@ def recorder(serport):
     while now - start_time < 30:
         now = time.time()
         newdata = serport.read(500)
-        eodpos = newdata.find(b'EOD')
-        if eodpos > 0:
-            lines = newdata[:eodpos].split(b'\n')
-            newdata = newdata[eodpos+3:]
-            for dl in lines:
-                if len(dl) < 20:
-                    continue
-                dl = dl.strip(b'\r').strip(b'?')
-                matcher = datafmt.match(dl)
-                if matcher:
-                    ident = matcher.group(1).strip().decode(
-                        encoding="ascii", errors="none")
-                    if len(ident) < 16:
-                        ident = None
-                else:
+        try:
+            before_eod, after_eod = newdata.split(b'EOD', 1)
+        except ValueError:
+            continue
+
+        lines = before_eod.split(b'\n')
+        newdata = after_eod
+        for dl in lines:
+            if len(dl) < 20:
+                continue
+            dl = dl.strip(b'\r').strip(b'?')
+            matcher = datafmt.match(dl)
+            if matcher:
+                ident = matcher.group(1).strip().decode(
+                    encoding="ascii", errors="none")
+                if len(ident) < 16:
                     ident = None
-                if ident is not None:
-                    now = time.time()
-                    timeobj = time.localtime(now)
-                    nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
-                    timesecs = str(int(now))
-                    measurements = [timeobj.tm_hour, nowstr, ident]
-                    measurements.extend([
-                        x.strip().decode(encoding="ascii", errors="none")
-                        for x in matcher.group(2).split(b',')] )
-                    measurements.append(timesecs)
-                    start_time = now
-                    yield measurements
+            else:
+                ident = None
+            if ident is not None:
+                now = time.time()
+                timeobj = time.localtime(now)
+                nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
+                timesecs = str(int(now))
+                measurements = [timeobj.tm_hour, nowstr, ident]
+                measurements.extend([
+                    x.strip().decode(encoding="ascii", errors="none")
+                    for x in matcher.group(2).split(b',')] )
+                measurements.append(timesecs)
+                start_time = now
+                yield measurements
     logging.info("timeout")
     return b'Timeout'
 
