@@ -14,7 +14,11 @@
 import argparse
 import logging
 import logging.handlers
-import sys, os, time, atexit, os.path
+import sys
+import os
+import time
+import atexit
+import os.path
 from datetime import datetime
 from datetime import timedelta
 import matplotlib.pyplot as plt
@@ -96,6 +100,7 @@ def recorder(serport):
             nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
             measurements = [timeobj.tm_hour, nowstr, ident]
             fields = d['csv_fields'].split(',')
+            #!!! What is there are more or less fields than expected?
             measurements.extend([field.strip() for field in fields])
             timesecs = str(int(now))
             measurements.append(timesecs)
