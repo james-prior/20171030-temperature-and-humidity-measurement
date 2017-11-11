@@ -29,6 +29,7 @@ import ftplib
 import threading
 import queue
 import socket
+from functools import partial
 
 import serial
 
@@ -39,7 +40,24 @@ ftpqueue = None
 
 record_pattern = re.compile(br'^\s*(?P<device_id>[0-9a-fA-F]+)\s+(?P<csv_fields>.+)$')
 
-def recorder(serport):
+def get_lines_from_serial_port(serial_port, n, timeout):
+    serial_port.timeout = 1.0
+    start_time = time.time()
+    for newdata in iter(partial(serial_port.read, n), None):
+        now = time.time()
+        if now - start_time > timeout:
+            return
+        start_time = now  #!!! Should this be at bottom of loop?
+
+        try:
+            before_eod, _ = newdata.split(b'EOD', 1)
+        except ValueError:
+            continue
+        lines = before_eod.split(b'\n')
+        yield from lines
+
+
+def recorder(serial_port):
     """ Collect ASCII data from the LinkTH controller, producing measurements
 
         This function interprets data flowing from the controller, trying
@@ -52,11 +70,11 @@ def recorder(serport):
         type      -- LinkTH iButton "type" string
         vvvvvvvvv Device-dependent variable fields
         tempC     -- Temperature Celsius if device is a temp/humidity sensor
-                  (type=19)
+                     (type=19)
         tempF     -- Temperature Fahrenheit if device is a temp/humidity sensor
-                  (type=19)
+                     (type=19)
         humid     -- Percent humidity if device is a temp/humidity sensor
-                  (type=19)
+                     (type=19)
         ^^^^^^^^^
         dtime     -- device reported time
         seconds   -- Data collection host time in seconds since 1/1/1970 UTC
@@ -69,43 +87,31 @@ def recorder(serport):
         should take the ident/type into consideratio unless it is known that
         the iBuffonLink string of devices is known.
     """
-    serport.timeout=1.0
-    start_time = time.time()
-    now = start_time
-    while now - start_time < 30:
-        now = time.time()
-        newdata = serport.read(500)
-        try:
-            before_eod, _ = newdata.split(b'EOD', 1)
-        except ValueError:
+    for line in get_lines_from_serial_port(serial_port, n=500, timeout=30):
+        if len(line) < 20:
+            continue
+        line = line.strip(b'\r').strip(b'?')
+        matcher = record_pattern.match(line)
+        if not matcher:
+            continue
+        d = {
+            key: value.decode(encoding="ascii", errors="none")
+            for key, value in matcher.groupdict().items()}
+        ident = d['device_id']
+        if len(ident) < 16:
             continue
 
-        lines = before_eod.split(b'\n')
-        for line in lines:
-            if len(line) < 20:
-                continue
-            line = line.strip(b'\r').strip(b'?')
-            matcher = record_pattern.match(line)
-            if not matcher:
-                continue
-            d = {
-                key: value.decode(encoding="ascii", errors="none")
-                for key, value in matcher.groupdict().items()}
-            ident = d['device_id']
-            if len(ident) < 16:
-                continue
+        now = time.time()
+        timeobj = time.localtime(now)
+        nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
+        measurements = [timeobj.tm_hour, nowstr, ident]
+        fields = d['csv_fields'].split(',')
+        #!!! What is there are more or less fields than expected?
+        measurements.extend([field.strip() for field in fields])
+        timesecs = str(int(now))
+        measurements.append(timesecs)
+        yield measurements
 
-            now = time.time()
-            timeobj = time.localtime(now)
-            nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
-            measurements = [timeobj.tm_hour, nowstr, ident]
-            fields = d['csv_fields'].split(',')
-            #!!! What is there are more or less fields than expected?
-            measurements.extend([field.strip() for field in fields])
-            timesecs = str(int(now))
-            measurements.append(timesecs)
-            start_time = now
-            yield measurements
     logging.info("timeout")
     return b'Timeout'
 
@@ -208,8 +214,8 @@ def animate(measurements):
                 temperature_c,
                 temperature_f,
                 rel_humidity,
-                uptime,
-                host_time,
+                device_uptime_hh_mm_ss_t,  # HH:MM:SS.t
+                host_time_epoch,  # Unit is one second since UNIX epoch.
             ) = measurement
         except ValueError:
             if x:
