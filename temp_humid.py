@@ -42,21 +42,20 @@ def recorder(serport):
         to produce measurements records. Each measurement record has the
         following format:
 
-        hour   -- int:    The local hour of the day
-        date   -- string: YYYY-mm-dd date
-        time   -- string: HH:MM:SS time of day
-        ident  -- iButton (oneWire) identification, 16 hex digits
-        type   -- LinkTH iButton "type" string
+        hour      -- int:    The local hour of the day
+        date_time -- string: YYYY-mm-dd HH:MM:SS time of day
+        ident     -- iButton (oneWire) identification, 16 hex digits
+        type      -- LinkTH iButton "type" string
         vvvvvvvvv Device-dependent variable fields
-        tempC  -- Temperature Celsius if device is a temp/humidity sensor
+        tempC     -- Temperature Celsius if device is a temp/humidity sensor
                   (type=19)
-        tempF  -- Temperature Fahrenheit if device is a temp/humidity sensor
+        tempF     -- Temperature Fahrenheit if device is a temp/humidity sensor
                   (type=19)
-        humid  -- Percent humidity if device is a temp/humidity sensor
+        humid     -- Percent humidity if device is a temp/humidity sensor
                   (type=19)
         ^^^^^^^^^
-        dtime  -- device reported time
-        seconds -- Data collection host time in seconds since 1/1/1970 UTC
+        dtime     -- device reported time
+        seconds   -- Data collection host time in seconds since 1/1/1970 UTC
 
         Note that for devices other than type=19, the fields tempC, tempF and
         humid will be replaced by possible different number of fields whose
