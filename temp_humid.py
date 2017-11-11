@@ -88,19 +88,19 @@ def recorder(serport):
             ident = matcher.group(1).strip().decode(
                 encoding="ascii", errors="none")
             if len(ident) < 16:
-                ident = None
-            if ident is not None:
-                now = time.time()
-                timeobj = time.localtime(now)
-                nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
-                timesecs = str(int(now))
-                measurements = [timeobj.tm_hour, nowstr, ident]
-                measurements.extend([
-                    x.strip().decode(encoding="ascii", errors="none")
-                    for x in matcher.group(2).split(b',')] )
-                measurements.append(timesecs)
-                start_time = now
-                yield measurements
+                continue
+
+            now = time.time()
+            timeobj = time.localtime(now)
+            nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
+            timesecs = str(int(now))
+            measurements = [timeobj.tm_hour, nowstr, ident]
+            measurements.extend([
+                x.strip().decode(encoding="ascii", errors="none")
+                for x in matcher.group(2).split(b',')] )
+            measurements.append(timesecs)
+            start_time = now
+            yield measurements
     logging.info("timeout")
     return b'Timeout'
 
