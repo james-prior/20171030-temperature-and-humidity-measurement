@@ -40,17 +40,21 @@ ftpqueue = None
 
 record_pattern = re.compile(br'^\s*(?P<device_id>[0-9a-fA-F]+)\s+(?P<csv_fields>.+)$')
 
-def get_lines_from_serial_port(serial_port, n, timeout):
+def get_bytes_from_serial_port(serial_port, n, timeout):
     serial_port.timeout = 1.0
     start_time = time.time()
-    for newdata in iter(partial(serial_port.read, n), None):
+    for data in iter(partial(serial_port.read, n), None):
         now = time.time()
         if now - start_time > timeout:
             return
         start_time = now  #!!! Should this be at bottom of loop?
+        yield data  #!!! Should this be at top of loop?
 
+
+def get_lines(iterable_of_bytes):
+    for data in iterable_of_bytes:
         try:
-            before_eod, _ = newdata.split(b'EOD', 1)
+            before_eod, _ = data.split(b'EOD', 1)
         except ValueError:
             continue
         lines = before_eod.split(b'\n')
@@ -87,7 +91,8 @@ def recorder(serial_port):
         should take the ident/type into consideratio unless it is known that
         the iBuffonLink string of devices is known.
     """
-    for line in get_lines_from_serial_port(serial_port, n=500, timeout=30):
+    for line in get_lines(get_bytes_from_serial_port(
+            serial_port, n=500, timeout=30)):
         if len(line) < 20:
             continue
         line = line.strip(b'\r').strip(b'?')
