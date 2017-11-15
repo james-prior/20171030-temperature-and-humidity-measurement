@@ -38,7 +38,8 @@ SERIAL_PORT_BIT_RATE = 9600  # Unit is 1 bit per second.
 graphqueue = None
 ftpqueue = None
 
-record_pattern = re.compile(br'^\s*(?P<device_id>[0-9a-fA-F]+)\s+(?P<csv_fields>.+)$')
+record_pattern = re.compile(
+    br'^\s*(?P<device_id>[0-9a-fA-F]+)\s+(?P<csv_fields>.+)$')
 
 def get_bytes_from_serial_port(serial_port, n, timeout):
     serial_port.timeout = 1.0
