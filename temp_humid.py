@@ -21,9 +21,6 @@ import atexit
 import os.path
 from datetime import datetime
 from datetime import timedelta
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import matplotlib.dates as mdates
 import re
 import ftplib
 import threading
@@ -32,6 +29,9 @@ import socket
 from functools import partial
 
 import serial
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import matplotlib.dates as mdates
 
 SERIAL_PORT_BIT_RATE = 9600  # Unit is 1 bit per second.
 
