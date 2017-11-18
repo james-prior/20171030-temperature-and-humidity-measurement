@@ -54,9 +54,11 @@ def get_bytes_from_serial_port(serial_port, n, timeout):
 
 
 def get_lines(iterable_of_bytes):
-    for data in iterable_of_bytes:
+    data = b''
+    for newdata in iterable_of_bytes:
+        data += newdata
         try:
-            before_eod, _ = data.split(b'EOD', 1)
+            before_eod, data = data.split(b'EOD', 1)
         except ValueError:
             continue
         lines = before_eod.split(b'\n')
