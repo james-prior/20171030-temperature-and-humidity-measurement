@@ -62,6 +62,7 @@ def get_lines(iterable_of_bytes):
         except ValueError:
             continue
         lines = before_eod.split(b'\n')
+        lines = [line.strip(b'\r') for line in lines]
         yield from lines
 
 
@@ -99,7 +100,7 @@ def recorder(serial_port):
             serial_port, n=500, timeout=30)):
         if len(line) < 20:
             continue
-        line = line.strip(b'\r').strip(b'?')
+        line = line.strip(b'?')
         matcher = record_pattern.match(line)
         if not matcher:
             continue
