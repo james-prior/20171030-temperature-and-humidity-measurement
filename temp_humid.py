@@ -42,6 +42,9 @@ record_pattern = re.compile(
     r'^\s*(?P<device_id>[0-9a-fA-F]{16,})\s+(?P<csv_fields>.+)$')
 
 def get_bytes_from_serial_port(serial_port, n, timeout):
+    """Yields strings converted from bytes from serial port.
+    Returns when no data has been received in about timeout seconds.
+    """
     serial_port.timeout = 1.0
     start_time = time.time()
     for data in iter(partial(serial_port.read, n), None):
@@ -54,6 +57,9 @@ def get_bytes_from_serial_port(serial_port, n, timeout):
 
 
 def get_lines(iterable_of_bytes):
+    """Yields bare lines from data before 'EOD' anywhere in data stream.
+    Returns when iterable_of_bytes is exhausted.
+    """
     data = ''
     for newdata in iterable_of_bytes:
         data += newdata
@@ -67,7 +73,7 @@ def get_lines(iterable_of_bytes):
 
 
 def recorder(serial_port):
-    """ Collect ASCII data from the LinkTH controller, producing measurements
+    """Collect ASCII data from the LinkTH controller, producing measurements
 
         This function interprets data flowing from the controller, trying
         to produce measurements records. Each measurement record has the
