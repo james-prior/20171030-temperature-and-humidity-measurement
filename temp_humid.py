@@ -98,8 +98,6 @@ def recorder(serial_port):
     """
     for line in get_lines(get_bytes_from_serial_port(
             serial_port, n=500, timeout=30)):
-        if len(line) < 20:
-            continue
         line = line.strip('?')
         matcher = record_pattern.match(line)
         if not matcher:
