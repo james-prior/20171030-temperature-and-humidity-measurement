@@ -46,10 +46,11 @@ def get_bytes_from_serial_port(serial_port, n, timeout):
     start_time = time.time()
     for data in iter(partial(serial_port.read, n), None):
         now = time.time()
-        if now - start_time > timeout:
+        if data:
+            yield data
+            start_time = now
+        elif now - start_time > timeout:
             return
-        start_time = now  #!!! Should this be at bottom of loop?
-        yield data  #!!! Should this be at top of loop?
 
 
 def get_lines(iterable_of_bytes):
