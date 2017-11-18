@@ -39,7 +39,7 @@ graphqueue = None
 ftpqueue = None
 
 record_pattern = re.compile(
-    br'^\s*(?P<device_id>[0-9a-fA-F]+)\s+(?P<csv_fields>.+)$')
+    br'^\s*(?P<device_id>[0-9a-fA-F]{16,})\s+(?P<csv_fields>.+)$')
 
 def get_bytes_from_serial_port(serial_port, n, timeout):
     serial_port.timeout = 1.0
@@ -104,9 +104,6 @@ def recorder(serial_port):
             key: value.decode(encoding="ascii", errors="none")
             for key, value in matcher.groupdict().items()}
         ident = d['device_id']
-        if len(ident) < 16:
-            continue
-
         now = time.time()
         timeobj = time.localtime(now)
         nowstr = time.strftime('%Y-%m-%d %H:%M:%S', timeobj)
