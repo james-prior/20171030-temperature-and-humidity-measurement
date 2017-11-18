@@ -101,9 +101,7 @@ def recorder(serial_port):
         matcher = record_pattern.match(line)
         if not matcher:
             continue
-        d = {
-            key: value
-            for key, value in matcher.groupdict().items()}
+        d = matcher.groupdict()
         ident = d['device_id']
         now = time.time()
         timeobj = time.localtime(now)
