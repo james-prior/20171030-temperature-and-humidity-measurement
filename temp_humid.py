@@ -39,7 +39,7 @@ graphqueue = None
 ftpqueue = None
 
 record_pattern = re.compile(
-    br'^\s*(?P<device_id>[0-9a-fA-F]{16,})\s+(?P<csv_fields>.+)$')
+    r'^\s*(?P<device_id>[0-9a-fA-F]{16,})\s+(?P<csv_fields>.+)$')
 
 def get_bytes_from_serial_port(serial_port, n, timeout):
     serial_port.timeout = 1.0
@@ -47,22 +47,22 @@ def get_bytes_from_serial_port(serial_port, n, timeout):
     for data in iter(partial(serial_port.read, n), None):
         now = time.time()
         if data:
-            yield data
+            yield data.decode('ascii', 'ignore')
             start_time = now
         elif now - start_time > timeout:
             return
 
 
 def get_lines(iterable_of_bytes):
-    data = b''
+    data = ''
     for newdata in iterable_of_bytes:
         data += newdata
         try:
-            before_eod, data = data.split(b'EOD', 1)
+            before_eod, data = data.split('EOD', 1)
         except ValueError:
             continue
-        lines = before_eod.split(b'\n')
-        lines = [line.strip(b'\r') for line in lines]
+        lines = before_eod.split('\n')
+        lines = [line.strip('\r') for line in lines]
         yield from lines
 
 
@@ -100,12 +100,12 @@ def recorder(serial_port):
             serial_port, n=500, timeout=30)):
         if len(line) < 20:
             continue
-        line = line.strip(b'?')
+        line = line.strip('?')
         matcher = record_pattern.match(line)
         if not matcher:
             continue
         d = {
-            key: value.decode(encoding="ascii", errors="none")
+            key: value
             for key, value in matcher.groupdict().items()}
         ident = d['device_id']
         now = time.time()
