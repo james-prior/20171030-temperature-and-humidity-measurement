@@ -181,13 +181,13 @@ def record_thread(recordqueue, graphqueue, datadir, portname, portretry):
             time.sleep(int(portretry))
         outfile.close()
 
-def generator():
+def get_measurements():
     measurements = []
     while True:
         try:
             measurements.append(graphqueue.get(block=False, timeout=None))
         except queue.Empty:
-            logging.debug("generator: %s", measurements)
+            logging.debug("get_measurements: %s", measurements)
             yield measurements
             measurements = []
 
@@ -583,7 +583,7 @@ def main():
     ani = animation.FuncAnimation(
         fig,
         animate,
-        frames=generator,
+        frames=get_measurements,
         init_func=ani_init,
         interval=display_interval,
         blit=False,
