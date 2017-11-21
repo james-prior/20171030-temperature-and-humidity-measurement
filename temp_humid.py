@@ -35,6 +35,8 @@ import matplotlib.dates as mdates
 
 SERIAL_PORT_BIT_RATE = 9600  # Unit is 1 bit per second.
 
+MAXIMUM_N_BUFFER_CHARS = 10000  # Unit is one character.
+
 graphqueue = None
 ftpqueue = None
 
@@ -67,10 +69,10 @@ def get_lines(iterable_of_strings):
             before_eod, data = data.split('EOD', 1)
         except ValueError:
             # Guard against accumulating too much data (when no EOD).
-            if len(data) > 10000:
+            if len(data) > MAXIMUM_N_BUFFER_CHARS:
                 # Throw away all except last line.
                 data = data.split('\n')[-1]
-            if len(data) > 10000:
+            if len(data) > MAXIMUM_N_BUFFER_CHARS:
                 # Throw away all except last 100 characters.
                 data = data[-100:]
             continue
