@@ -42,7 +42,7 @@ record_pattern = re.compile(
     r'^\s*(?P<device_id>[0-9a-fA-F]{16,})\s+(?P<csv_fields>.+)$')
 
 def get_strings_from_serial_port(serial_port, n, timeout):
-    """Yields strings decoded from ASCII bytes from serial port.
+    """Yields strings decoded from ASCII bytes from already open serial port.
     Returns when no data has been received in about timeout seconds.
     """
     serial_port.timeout = 1.0
